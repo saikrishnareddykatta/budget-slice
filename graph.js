@@ -34,17 +34,32 @@ const update = (data) => {
   const paths = graph.selectAll("path").data(pie(data));
 
   // handle the exit selection
+  paths
+    .exit()
+    .transition()
+    .duration(3000)
+    .attrTween("d", arcTweenExit)
+    .remove();
 
   // handle current DOM path updates
-
   paths
-    .enter()
-    .append("path")
     .attr("class", "arc")
     .attr("d", arcPath)
     .attr("stroke", "#fff")
     .attr("stroke-width", 3)
     .attr("fill", (d) => color(d.data.name));
+
+  // update the append selection to the dom
+  paths
+    .enter()
+    .append("path")
+    .attr("class", "arc")
+    .attr("stroke", "#fff")
+    .attr("stroke-width", 3)
+    .attr("fill", (d) => color(d.data.name))
+    .transition()
+    .duration(3000)
+    .attrTween("d", arcTweenEnter);
 };
 
 // data array and firestore
@@ -70,3 +85,19 @@ db.collection("expenses").onSnapshot((res) => {
   });
   update(data);
 });
+
+const arcTweenEnter = (d) => {
+  let i = d3.interpolate(d.endAngle, d.startAngle);
+  return function (t) {
+    d.startAngle = i(t);
+    return arcPath(d);
+  };
+};
+
+const arcTweenExit = (d) => {
+  let i = d3.interpolate(d.startAngle, d.endAngle);
+  return function (t) {
+    d.startAngle = i(t);
+    return arcPath(d);
+  };
+};
