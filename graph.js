@@ -62,7 +62,7 @@ const update = (data) => {
     .attrTween("d", arcTweenEnter);
 };
 
-// data array and firestore
+// data array to store data from firestore
 let data = [];
 
 db.collection("expenses").onSnapshot((res) => {
