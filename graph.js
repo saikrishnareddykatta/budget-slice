@@ -25,21 +25,27 @@ const arcPath = d3
 // adding ordinal scales to provide unique color for each category
 const color = d3.scaleOrdinal(d3["schemeSet3"]);
 
+//legend setup
+const legendGroup = svg
+  .append("g")
+  .attr("transform", `translate(${dimensions.width + 40}, 10)`);
+
+const legend = d3.legendColor().shape("circle").shapePadding(10).scale(color);
+
 // update function
 const update = (data) => {
   //update color scale domain
   color.domain(data.map((d) => d.name));
 
+  //update and call legend
+  legendGroup.call(legend);
+  legendGroup.selectAll("text").attr("fill", "white");
+
   // join enhanced (pie) data to path elements
   const paths = graph.selectAll("path").data(pie(data));
 
   // handle the exit selection
-  paths
-    .exit()
-    .transition()
-    .duration(3000)
-    .attrTween("d", arcTweenExit)
-    .remove();
+  paths.exit().transition().duration(900).attrTween("d", arcTweenExit).remove();
 
   // handle current DOM path updates
   paths
@@ -47,7 +53,10 @@ const update = (data) => {
     .attr("d", arcPath)
     .attr("stroke", "#fff")
     .attr("stroke-width", 3)
-    .attr("fill", (d) => color(d.data.name));
+    .attr("fill", (d) => color(d.data.name))
+    .transition()
+    .duration(900)
+    .attrTween("d", arcTweenUpdate);
 
   // update the append selection to the dom
   paths
@@ -57,8 +66,11 @@ const update = (data) => {
     .attr("stroke", "#fff")
     .attr("stroke-width", 3)
     .attr("fill", (d) => color(d.data.name))
+    .each(function (d) {
+      this._current = d;
+    })
     .transition()
-    .duration(3000)
+    .duration(900)
     .attrTween("d", arcTweenEnter);
 };
 
@@ -101,3 +113,14 @@ const arcTweenExit = (d) => {
     return arcPath(d);
   };
 };
+
+// use function keyword
+function arcTweenUpdate(d) {
+  // interpolate between two objects
+  let i = d3.interpolate(this._current, d);
+  // update the current prop with the new updated data
+  this._current = i(1);
+  return function (t) {
+    return arcPath(i(t));
+  };
+}
