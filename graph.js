@@ -77,7 +77,8 @@ const update = (data) => {
   graph
     .selectAll("path")
     .on("mouseover", handleMouseOver)
-    .on("mouseout", handleMouseOut);
+    .on("mouseout", handleMouseOut)
+    .on("click", handleClickEvent);
 };
 
 // data array to store data from firestore
@@ -144,4 +145,9 @@ const handleMouseOut = (d, i, n) => {
     .transition("changeSliceFill")
     .duration(300)
     .attr("fill", color(d.data.name));
+};
+
+const handleClickEvent = (d) => {
+  const id = d.data.id;
+  db.collection("expenses").doc(id).delete();
 };
